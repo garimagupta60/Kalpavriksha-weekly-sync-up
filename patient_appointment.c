@@ -16,21 +16,43 @@ patient* criticallisttail = NULL;
 patient* seriouslisttail = NULL;
 patient* Stablelisttail = NULL;
 
-patient* createPatient(){
+int searchid(int id){
+    patient* currentpatient = head;
+    while(currentpatient!=NULL){
+        if(currentpatient->id == id)return 1;
+        currentpatient = currentpatient->next;
+    }
+    return -1;
+}
+patient* createPatient() {
     int id;
     char severity[100];
     //printf("Enter ID: ");
     scanf("%d", &id);
-    //printf("Enter Severity: ");
     getchar();
-    scanf("%[^\n]%*c",severity);
+
+    while (searchid(id) != -1) {
+        printf("This ID already exists. Enter a new ID: ");
+        scanf("%d", &id);
+        getchar();
+    }
+
+    //printf("Enter Severity (Critical, Serious, Stable): ");
+    scanf("%[^\n]%*c", severity);
+
+    while (strcmp(severity, "Critical") != 0 && strcmp(severity, "Serious") != 0 && strcmp(severity, "Stable") != 0) {
+        printf("This is an invalid severity. Enter a valid severity (Critical, Serious, Stable): ");
+        scanf("%[^\n]%*c", severity);
+    }
 
     patient* newpatient = (patient*)malloc(sizeof(patient));
     newpatient->id = id;
     strcpy(newpatient->severity, severity);
     newpatient->next = NULL;
+
     return newpatient;
 }
+
 
 patient* addpatient(){
     patient* newpatient = createPatient();
@@ -54,60 +76,6 @@ void displaypatients(patient* head){
     }
 }
 
-patient* findmiddle(patient* head){
-    patient* slow = head;
-    patient* fast = head->next;
-    while (fast && fast->next)
-    {
-        fast = fast->next->next;
-        slow = slow->next;
-    }
-    return slow;
-}
-
-patient* merge(patient* left, patient* right){
-
-    patient* ans = (patient*)malloc(sizeof(patient));
-    patient* temp = ans;
-    while(left!=NULL && right!=NULL){
-        if(left->id < right->id){
-            temp->next = left;
-            temp= temp->next;
-            left = left->next;
-        }else{
-            temp->next = right;
-            temp= temp->next;
-            right = right->next;
-        }
-    }
-    if(left){
-        temp->next = left;
-    }
-    if(right){
-        temp->next = right;
-    }
-
-    patient* result = ans->next;
-    free(ans);
-    return result;
-
-
-}
-
-patient* mergesort(patient* head){
-    if(head == NULL || head->next == NULL){
-        return head;
-    }
-    patient* middle = findmiddle(head);
-    patient* left = head;
-    patient* right = middle->next;
-    middle->next = NULL;
-
-    left = mergesort(left);
-    right = mergesort(right);
-    return merge(left,right);
-}
-
 patient* customsort(){
     patient* current = head;
     while(current!=NULL){
@@ -119,7 +87,6 @@ patient* customsort(){
                 criticallisttail->next = current;
                 criticallisttail = criticallisttail->next;
             }
-            current = current->next;
         }else if(strcmp(current->severity,"Serious")==0){
             if(seriouslisthead == NULL){
                 seriouslisthead = current;
@@ -128,7 +95,6 @@ patient* customsort(){
                 seriouslisttail->next = current;
                 seriouslisttail = seriouslisttail->next;
             }
-            current = current->next;
         }else if(strcmp(current->severity,"Stable")==0){
             if(Stablelisthead == NULL){
                 Stablelisthead = current;
@@ -137,8 +103,8 @@ patient* customsort(){
                 Stablelisttail->next = current;
                 Stablelisttail = Stablelisttail->next;
             }
-            current = current->next;
         }
+        current = current->next;
     }
     if(criticallisttail!=NULL){
         criticallisttail->next = NULL;
@@ -150,38 +116,17 @@ patient* customsort(){
         Stablelisttail->next = NULL;
     }
 
+    if (criticallisttail) criticallisttail->next = seriouslisthead;
+    if (seriouslisttail) seriouslisttail->next = Stablelisthead;
 
-    printf("\nCritical List\n");
-    displaypatients(criticallisthead);
-    printf("\nserious List\n");
-    displaypatients(seriouslisthead);
-    printf("\nstable List\n");
-    displaypatients(Stablelisthead);
-
-
-    criticallisthead = mergesort(criticallisthead);
-    seriouslisthead = mergesort(seriouslisthead);
-    Stablelisthead = mergesort(Stablelisthead);
-
-    if(criticallisthead!=NULL){
+    if (criticallisthead) {
         head = criticallisthead;
-        if(seriouslisthead!=NULL){
-            criticallisttail->next = seriouslisthead;
-        }
-        else{
-            criticallisttail->next = Stablelisthead;
-        }
-        return head;
-    }else if(seriouslisthead!=NULL){
+    } else if (seriouslisthead) {
         head = seriouslisthead;
-        if(Stablelisthead!=NULL){
-            seriouslisttail->next = Stablelisthead;
-        }
-        return head;
-    }else{
+    } else {
         head = Stablelisthead;
-        return head;
     }
+
     return head;
 }
 patient* sortPatientList(){
@@ -200,8 +145,8 @@ int main(){
         number_of_patients--;
     }
 
-    printf("Inital list\n");
-    displaypatients(head);
+    // printf("Inital list\n");
+    // displaypatients(head);
     head = customsort();
     printf("\n");
     displaypatients(head);
