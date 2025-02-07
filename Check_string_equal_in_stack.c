@@ -51,7 +51,6 @@ void push(stack* newStack, char value){
 
 char pop(stack* newStack){
     if(isEmpty(newStack)){
-        // printf("Underflow\n");
         return '@';
     }else{
         node* temp = newStack->top;
